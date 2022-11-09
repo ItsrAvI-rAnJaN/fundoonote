@@ -15,7 +15,7 @@ def loginapi(request):
     try:
         data = json.loads(request.body)
         if request.method == 'POST':
-            user = User.objects.filter(username=data.get('username'), password=data.get('password')).first()
+            user = authenticate(username=data.get('username'), password=data.get('password'))
             if user is not None:
                 return JsonResponse({'message': 'Login successfully!'})
             else:
@@ -25,20 +25,23 @@ def loginapi(request):
         logging.exception(err)
         return JsonResponse({"message": str(err)})
 
+
 def registration(request):
     """
     method : To registerd user
     """
     try:
-        data= json.loads(request.body)
+        data = json.loads(request.body)
         if request.method == 'POST':
-            User.objects.create(username=data.get('username'),password=data.get('password'),email=data.get('email'))
-            return JsonResponse({"message" : "User registered sucessfully"})
+            user = User.objects.create_user(first_name=data.get('first_name'), last_name=data.get('last_name'),
+                                            username=data.get('username'), password=data.get('password'),
+                                            email=data.get('email'), phone=data.get('phone'),
+                                            location=data.get('location'))
+            return JsonResponse({"message": "User registered sucessfully"})
         else:
-            return JsonResponse({"message":"Invalid Credential"})
+            return JsonResponse({"message": "Invalid Credential"})
 
     except Exception as err:
-            print(err)
-            logging.exception(err)
-            return JsonResponse({"message": str(err)})
-
+        print(err)
+        logging.exception(err)
+        return JsonResponse({"message": str(err)})
