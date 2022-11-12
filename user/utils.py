@@ -8,7 +8,9 @@ from .models import User
 class JWT:
     def encode(self, data):
         if not isinstance(data, dict):
-            raise Exception(data, settings.JWT_KEY, algorithm="HS256")
+            raise Exception("Data is not in dictionary")
+        encode_jwt=jwt.encode(data,settings.JWT_KEY, algorithm="HS256")
+        return encode_jwt
 
     def decode(self, token):
         try:
@@ -16,37 +18,24 @@ class JWT:
         except jwt.exceptions.pyJWTError as err:
             raise err
 
-def get_user(request):
-    token=request.headers.get("Token")
-    decoded=JWT().decode(token)
-    if not token:
-        raise  Exception ("Token Authentication required")
-    user=User.objects.get(username=decoded.get("username"))
-    if not user:
-        raise Exception("Invalid user")
-    if not user.is_verified:
-        raise Exception ("user not verified")
-    return decoded, user
+
+
 
 def verify_user_token(function):
-
     def wrapper(self, request, *args, **kwargs):
-        try:
-            payload, user = get_user(request)
-            request.data.update({"username" : payload.get("username")})
-        except Exception as err:
-            logging.exception(err)
-        return function(self, request, *args, **kwargs)
+        token = request.headers.get("Token")
+        print(token)
+        if token is None:
+            raise Exception("Token Authentication required")
+        payload = JWT().decode(token)
+        print(payload)
+        user = User.objects.get(username=payload.get("username"))
+        if not user:
+            raise Exception("Invalid user")
+        # if not user.is_verified:
+        #     raise Exception("user not verified")
+        request.data.update({"user":user.id})
+        var = function(self, request, *args, **kwargs)
+        return var
+
     return wrapper
-
-def verify_super_user_token(function):
-    def wrapper(self, request, *args, **kwargs):
-        try:
-            payload, user = get_user(request)
-            if not user.is_superuser:
-                raise Exception("unauthorized user")
-        except Exception as err:
-            logging.exception(err)
-            return function(self, request, *args, **kwargs)
-        return wrapper
-
