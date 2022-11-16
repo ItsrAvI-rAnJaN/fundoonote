@@ -2,14 +2,17 @@ import logging
 
 import jwt
 from django.conf import settings
+from rest_framework.response import Response
+
 from .models import User
+
 
 
 class JWT:
     def encode(self, data):
         if not isinstance(data, dict):
             raise Exception("Data is not in dictionary")
-        encode_jwt=jwt.encode(data,settings.JWT_KEY, algorithm="HS256")
+        encode_jwt = jwt.encode(data, settings.JWT_KEY, algorithm="HS256")
         return encode_jwt
 
     def decode(self, token):
@@ -19,22 +22,19 @@ class JWT:
             raise err
 
 
-
-
 def verify_user_token(function):
     def wrapper(self, request, *args, **kwargs):
         token = request.headers.get("Token")
-        print(token)
+        # print(token)
         if token is None:
-            raise Exception("Token Authentication required")
+           # raise Exception("Token Authentication required")
+            return Response({"message":"Token Authentication required"},status=400)
         payload = JWT().decode(token)
         print(payload)
         user = User.objects.get(username=payload.get("username"))
         if not user:
             raise Exception("Invalid user")
-        # if not user.is_verified:
-        #     raise Exception("user not verified")
-        request.data.update({"user":user.id})
+        request.data.update({"user": user.id})
         var = function(self, request, *args, **kwargs)
         return var
 

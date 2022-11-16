@@ -9,8 +9,18 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from .serializers import LoginSerializer,RegisterSerializer
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 
 class Login(APIView):
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING),
+            'password': openapi.Schema(type=openapi.TYPE_STRING)
+        }),
+        responses={202: 'ACCEPTED', 400: 'BAD REQUEST'})
     def post(self,request):
         """
          for logging of the user
@@ -20,35 +30,27 @@ class Login(APIView):
             if user is not None:
                 token = JWT().encode(
                     data={"username": request.data.get("username"), "email": user.email})
-                return Response({'message': 'Login successfully!',"data": {"token":token}},
+                return Response({'message': 'Login successfully!',"status":202,"data": {"token":token}},
                             status=status.HTTP_202_ACCEPTED)
             else:
-                return Response({'message': 'Login failed!'})
+                return Response({'message': 'Login failed!'},status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as err:
             # print(err)
             logging.exception(err)
             return Response({"message": str(err)})
-
-
 class Register(APIView):
+    @swagger_auto_schema(request_body=RegisterSerializer, responses={201: 'CREATED', 400: 'BAD REQUEST'})
     def post(self,request):
         try:
             serializer = RegisterSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             token=JWT().encode(data={"user_id":serializer.data.get("user_id"),"username":serializer.data.get("username")})
-            send_mail(
-                subject='PyJWT',
-                message=settings.BASE_URL + reverse('verify_token_api', kwargs={"token": token}),
-                from_email=None,
-                recipient_list=[serializer.data.get("email")]
-            )
             return Response({"message": "User registered sucessfully",'status':201,'data':serializer.data},status=status.HTTP_201_CREATED)
         except Exception as err:
-            # print(err)
             logging.exception(err)
-            return Response({"message": str(err)})
+            return Response({"message": str(err)},status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyToken(APIView):
     def get(self, request, token):
