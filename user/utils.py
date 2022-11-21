@@ -10,11 +10,9 @@ from .models import User
 
 class JWT:
     def encode(self, data):
-        print(data)
         if not isinstance(data, dict):
             raise Exception("Data is not in dictionary")
         encode_jwt = jwt.encode(data, settings.JWT_KEY, algorithm="HS256")
-        print(encode_jwt)
         return encode_jwt.decode("utf-8")
 
     def decode(self, token):

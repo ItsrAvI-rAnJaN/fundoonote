@@ -9,3 +9,10 @@ class User(AbstractUser):
 
     class Meta:
         db_table = "user"
+
+
+class UserLogs(models.Model):
+    method = models.CharField(max_length=200)
+    url = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    count = models.IntegerField(default=0)
