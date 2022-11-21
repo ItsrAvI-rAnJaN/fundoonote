@@ -8,10 +8,11 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from .serializers import LoginSerializer,RegisterSerializer
-
+from user.tasks import send_user_email_task
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+logging.basicConfig(filename='user_logs.log', encoding='utf-8', level=logging.DEBUG)
 
 class Login(APIView):
     @swagger_auto_schema(request_body=openapi.Schema(
@@ -46,8 +47,10 @@ class Register(APIView):
             serializer = RegisterSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            token=JWT().encode(data={"user_id":serializer.data.get("user_id"),"username":serializer.data.get("username")})
-            return Response({"message": "User registered sucessfully",'status':201,'data':serializer.data},status=status.HTTP_201_CREATED)
+            token=JWT().encode(data={"user_id":serializer.data.get("id"),"username":serializer.data.get("username")})
+            send_user_email_task.delay(token, serializer.data.get("email"))
+            return Response({"message": "User registered sucessfully",'status':201,'data':serializer.data},
+                            status=status.HTTP_201_CREATED)
         except Exception as err:
             logging.exception(err)
             return Response({"message": str(err)},status=status.HTTP_400_BAD_REQUEST)

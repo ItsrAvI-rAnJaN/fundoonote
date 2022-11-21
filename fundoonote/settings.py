@@ -9,9 +9,12 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
+import django_celery_results
+
+from fundoonote.celery import app
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'notes',
     'drf_yasg',
+    'django_celery_results',
 
 ]
 
@@ -130,6 +134,12 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user.User'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'ezekie.em@gmail.com'
+EMAIL_HOST_PASSWORD = 'abcdfghij'
+EMAIL_USE_TLS = True
 JWT_KEY = 'secret'
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
@@ -141,3 +151,8 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+# app.conf.broker_url = 'redis://localhost:6379/0'
+# app.conf.result_backend = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+

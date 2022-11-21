@@ -1,6 +1,7 @@
+import labels as labels
 from rest_framework import serializers
 from notes.models import Notes
-from drf_yasg import openapi
+from notes.models import Labels
 
 
 class NoteSerializer(serializers.ModelSerializer):
@@ -10,5 +11,15 @@ class NoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notes
-        fields = ['id', 'title', 'description', 'user']
-        swagger_schema_fields = {"required": ["tittle", "description"], "type": openapi.TYPE_OBJECT}
+        fields = ['id', 'title', 'description', 'user', 'collaborator', "labels"]
+        read_only_fields = ['collaborator', "labels"]
+
+
+class LabelSerializer(serializers.ModelSerializer):
+    """
+    Creates a new `Note`
+    """
+
+    class Meta:
+        model = Labels
+        fields = ['id', 'title', 'color', 'user', ]

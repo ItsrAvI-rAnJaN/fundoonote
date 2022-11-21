@@ -10,10 +10,12 @@ from .models import User
 
 class JWT:
     def encode(self, data):
+        print(data)
         if not isinstance(data, dict):
             raise Exception("Data is not in dictionary")
         encode_jwt = jwt.encode(data, settings.JWT_KEY, algorithm="HS256")
-        return encode_jwt
+        print(encode_jwt)
+        return encode_jwt.decode("utf-8")
 
     def decode(self, token):
         try:
@@ -25,12 +27,9 @@ class JWT:
 def verify_user_token(function):
     def wrapper(self, request, *args, **kwargs):
         token = request.headers.get("Token")
-        # print(token)
         if token is None:
-           # raise Exception("Token Authentication required")
             return Response({"message":"Token Authentication required"},status=400)
         payload = JWT().decode(token)
-        print(payload)
         user = User.objects.get(username=payload.get("username"))
         if not user:
             raise Exception("Invalid user")
