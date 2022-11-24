@@ -10,7 +10,7 @@ class CountMiddleware(MiddlewareMixin):
             log.count += 1
             log.save()
         else:
-            UserLogs.objects.Create(method=request.method, url=request.path)
+            UserLogs.objects.create(method=request.method, url=request.path)
         return self.get_response(request)
 
 
