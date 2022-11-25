@@ -29,14 +29,12 @@ class Login(APIView):
          for logging of the user
         """
         try:
-            user = authenticate(username=request.data('username'), password=request.data('password'))
-            if user is not None:
-                token = JWT().encode(
-                    data={"username": request.data("username"), "email": user.email})
-                return Response({'message': 'Login successfully!',"status":202,"data": {"token":token}},
+            serializer = LoginSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            token = JWT().encode(data={"user_id": serializer.data.get("id")})
+            return Response({'message': 'Login successfully!',"status":202,"data": {"token":token}},
                              status=status.HTTP_202_ACCEPTED)
-            else:
-                return Response({'message': 'Login failed!'},status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
             logging.exception(err)
             return Response({"message": str(err)})
